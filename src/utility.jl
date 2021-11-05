@@ -7,6 +7,34 @@
 # @benchmark BandedMatrix(B) \ I
 
 """
+    findGaps(time, Δt = median(diff(time)); radius = 0.1Δt)
+
+Find gaps in a time vector and encode them into a matrix S. S' * y results in the original signal with zero filling.
+
+# Arguments
+
+* time:     A vector that encodes the time (eg. seconds, samples, ...)
+* Δt:       The expected distance between two measurements, defaults to median(diff(time)) 
+* radius:   If the signal is not non-uniformly sampled, the radius can be used to search in a broader area around the expected sample. 
+""" 
+function findGaps(time, Δt = median(diff(time)); radius = 0.1Δt)
+    present = Bool[]
+    diffTime = diff(time)
+    currentGapLen = 1
+    push!(present, true)
+    for difft in diffTime
+        while currentGapLen * Δt + radius < difft
+            push!(present, false)
+            currentGapLen += 1 
+        end
+        push!(present, true)
+        currentGapLen = 1 
+    end
+    S = I(length(present))[present, :]
+    return S    
+end
+
+"""
 simulateData(f; percGaps = 0.2, maxGapRatio = 0.3, percOutliers = 0.05, σ_noise = 0.2, outlierStrength = 1) 
 
 Put some gaps and outlier in the smooth signal f. The underlying model takes the form:

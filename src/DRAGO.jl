@@ -8,8 +8,9 @@ using BandedMatrices
 
 include("utility.jl")
 
-export drago, simulateData 
+export drago, simulateData, fun 
 
+fun() = "Hello2!"
 """
     drago(y, λ1, λ2, S = I; ΔFmin = 0.01, maxiter = 10, verbose = false)
 
@@ -35,7 +36,7 @@ Nonlinear Smoothing of Data with Random Gaps and Outliers (DRAGO). A detailed de
 * xRes:     The estimated outliers
 * residual: The residual signal y - (f + x)     
 """
-function drago(y, λ1, λ2, S = I; ΔFmin = 0.01, maxiter = 10, verbose = false)
+function drago(y, λ1, λ2, S = I(length(y)); ΔFmin = 0.01, maxiter = 10, verbose = false)
     # Initialize
     N = length(y)
     xRes = S * y
@@ -61,7 +62,7 @@ function drago(y, λ1, λ2, S = I; ΔFmin = 0.01, maxiter = 10, verbose = false)
         Fold = Fnow 
         iter += 1
     end
-    residual = y[present] .- (fRes[present] .+ x)
+    residual = y[present] .- (fRes[present] .+ xRes)
     
     return fRes, xRes, residual    
 end
