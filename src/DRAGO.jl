@@ -8,9 +8,8 @@ using BandedMatrices
 
 include("utility.jl")
 
-export drago, simulateData, fun 
+export drago, simulateData, findGaps 
 
-fun() = "Hello2!"
 """
     drago(y, λ1, λ2, S = I; ΔFmin = 0.01, maxiter = 10, verbose = false)
 
