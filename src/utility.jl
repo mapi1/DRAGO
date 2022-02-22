@@ -1,13 +1,5 @@
-
-# N = 10000
-# B = Tridiagonal(ones(N-1), -2ones(N), ones(N-1))
-# @benchmark inv(Matrix(B))
-# @benchmark inv(BandedMatrix(B))
-# @benchmark Matrix(B) \ Diagonal(ones(10000))
-# @benchmark BandedMatrix(B) \ I
-
 """
-    findGaps(time, Δt = median(diff(time)); radius = 0.1Δt)
+find_gaps(time, Δt = median(diff(time)); radius = 0.1Δt)
 
 Find gaps in a time vector and encode them into a matrix S. S' * y results in the original signal with zero filling.
 
@@ -17,7 +9,7 @@ Find gaps in a time vector and encode them into a matrix S. S' * y results in th
 * Δt:       The expected distance between two measurements, defaults to median(diff(time)) 
 * radius:   If the signal is not non-uniformly sampled, the radius can be used to search in a broader area around the expected sample. 
 """ 
-function findGaps(time, Δt = median(diff(time)); radius = 0.1Δt)
+function find_gaps(time, Δt = median(diff(time)); radius = 0.1Δt)
     present = Bool[]
     diffTime = diff(time)
     currentGapLen = 1
@@ -35,47 +27,54 @@ function findGaps(time, Δt = median(diff(time)); radius = 0.1Δt)
 end
 
 """
-simulateData(f; percGaps = 0.2, maxGapRatio = 0.3, percOutliers = 0.05, σ_noise = 0.2, outlierStrength = 1) 
+simulate_data(f; percentage_gaps = 0.2, max_gap_ratio = 0.3, percentage_outliers = 0.05, σ_noise = 0.2, outlier_strength = 1) 
 
 Put some gaps and outlier in the smooth signal f. The underlying model takes the form:
 Sy = Sf + x + w 
 
 # Keyword Arguments
 
-* percGaps: The percentage of gaps ∈ [0,1]
-* maxGapRatio: Maximal allowed ratio between gap length to total gap length ∈ ]0,1] 
-* percOutliers: The percentage of outliers ∈ [0,1]
-* outlierStrength: Strength of the gaussian outlier distribution
-* σNoise: σ of the additive gaussian noise w
+* percentage_gaps: The percentage of gaps ∈ [0,1]
+* max_gap_ratio: Maximal allowed ratio between gap length to total gap length ∈ ]0,1] 
+* percentage_outliers: The percentage of outliers ∈ [0,1]
+* outlier_strength: Strength of the gaussian outlier distribution
+* σ_noise: σ of the additive gaussian noise w
 
 # Returns
 
-(y, f, x, w, S)
+(y, x, w, S)
 """
-function simulateData(f; percGaps = 0.2, maxGapRatio = 0.3, percOutliers = 0.05, σNoise = 0.2, outlierStrength = 1)
+function simulate_data(f; percentage_gaps = 0.4, max_gap_ratio = 0.1, percentage_outliers = 0.05, σ_noise = 0.2, outlier_strength = 1)
     N = length(f)
     # Gaps
-    present = placeGaps(N, percGaps = percGaps, maxGapRatio = maxGapRatio)
+    present = place_gaps(N, percentage_gaps = percentage_gaps, max_gap_ratio = max_gap_ratio)
     S = I(N)[present, :]
     # Outliers
     x = zeros(N)
-    outliers = sample(present, round(Int, percOutliers * N), replace = false) 
-    x[outliers] += rand(Normal(0, outlierStrength), length(outliers))
+    outliers = sample(present, round(Int, percentage_outliers * N), replace = false) 
+    x[outliers] += rand(Normal(0, outlier_strength), length(outliers))
     # Noise
-    w = rand(Normal(0, σNoise), N)
+    w = rand(Normal(0, σ_noise), N)
     y = f .+ x .+ w
-    return (y, f, x, w, S)
+    return (y, x, w, S)
 end
 
-function placeGaps(N; percGaps = 0.2, maxGapRatio = 0.3)
+"""
+Get the indices where data is present from the encoding matrix S 
+"""
+get_present(S) = [1:size(S,2);][diag(S' * S) .== 1]
+
+
+# Distribute the gaps onto the signal, return which samples are present
+function place_gaps(N; percentage_gaps = 0.2, max_gap_ratio = 0.3)
     present = collect(1:N)
-    toGap = round(Int, percGaps * N)
-    maxGap = maxGapRatio * toGap
-    while toGap > 0
-        gapLen = sample(1:min(maxGap, toGap))
-        start = sample(1:(length(present) - gapLen))
-        filter!(x -> !(x in start:(start + gapLen - 1)), present)
-        toGap = length(present) - (N - round(Int, percGaps * N))
+    total_gaps = round(Int, percentage_gaps * N)
+    max_gap = max_gap_ratio * total_gaps
+    while total_gaps > 0
+        gap_len = sample(1:min(max_gap, total_gaps))
+        start = sample(1:(length(present) - gap_len))
+        filter!(x -> !(x in start:(start + gap_len - 1)), present)
+        total_gaps = length(present) - (N - round(Int, percentage_gaps * N))
     end
     return present
 end

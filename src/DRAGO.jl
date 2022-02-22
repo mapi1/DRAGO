@@ -7,7 +7,7 @@ using BandedMatrices
 
 include("utility.jl")
 
-export drago, simulateData, findGaps 
+export drago, simulate_data, find_gaps, get_present 
 
 """
     drago(y, λ1, λ2, S = I; ΔFmin = 0.01, maxiter = 10, verbose = false)
@@ -41,7 +41,6 @@ function drago(y, λ1, λ2, S = I(length(y)); ΔFmin = 0.01, maxiter = 10, verbo
     present = [1:N;][diag(S' * S) .== 1]
     Dn = Tridiagonal(ones(N-1), -2ones(N), ones(N-1))
     Dn = Dn[2:end-1, 1:end] # make it N-2 x N
-    # Dn = BandedMatrix((0 => ones(N-2), 1 => -2ones(N-2), 2 => ones(N-2)), (N-2, N))
     λ2DDn = λ2 .* Dn' * Dn
     
     # Objective function
@@ -63,8 +62,8 @@ function drago(y, λ1, λ2, S = I(length(y)); ΔFmin = 0.01, maxiter = 10, verbo
         Fold = Fnow 
         iter += 1
     end
-    residual = y[present] .- (fRes[present] .+ xRes)
-    
+    residual = y .- (S' * xRes .+ fRes)
+
     return fRes, xRes, residual    
 end
 end #module

@@ -1,7 +1,7 @@
 name = "DRAGO"
 uuid = "e7bd32bc-90c7-49b5-9a11-76425643efcd"
 authors = ["Marius Pille <marius.pille@hu-berlin.de> and contributors"]
-version = "0.0.1"
+version = "0.0.2"
 
 [deps]
 BandedMatrices = "aae01518-5342-5314-be14-df237901396f"
