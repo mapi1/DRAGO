@@ -1,6 +1,6 @@
 # DRAGO.jl
 
-Nonlinear Smoothing of Data with Random Gaps and Outliers (DRAGO) based on [1]. For more information see the docstrings of 
+Nonlinear Smoothing of Data with Random Gaps and Outliers (DRAGO) based on [1]. For more information see the docstrings of: 
 
 * `drago`
 * `find_gaps`
